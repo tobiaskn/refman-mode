@@ -27,6 +27,20 @@
 (defvar refman-notes-dir org-directory
   "Directory where `refman-notes-file' is located.")
 
+(defvar refman--wconf nil
+  "Hold the window configuration before 'refman/init' is invoked.")
+
+(defvar refman--buffer nil
+  "The buffer where the bibliography is shown.")
+
+(defun refman-mode ()
+    "TODO: doc."
+  (interactive)
+  ;; window management
+  (setq refman--wconf (current-window-configuration))
+  (delete-other-windows)
+  (refman/init))
+
 (defun refman/init ()
   "TODO: doc."
   (let* ((file-path (concat refman-notes-dir refman-notes-file))
@@ -36,8 +50,24 @@
       ;; set the title of the org buffer
       (insert "Bibliography\n")
       (insert "#+STARTUP: hideblocks overview\n\n")
-      (save-buffer))))
+      (save-buffer))
+    (setq refman--buffer (current-buffer)))
+  (refman--bibliography-minor-mode))
 
+(defun refman/quit ()
+  "TODO: doc."
+  (interactive)
+  (set-window-configuration refman--wconf)
+  (kill-buffer refman--buffer)
+  (setq refman--buffer nil))
 
+(defvar refman--bibliography-minor-mode-map
+  (let ((kmap (make-sparse-keymap)))
+    (define-key kmap (kbd "C-c C-q") 'refman/quit)
+    kmap))
+
+(define-minor-mode refman--bibliography-minor-mode
+  "Active when inside the bibliography managed by refman-mode."
+  nil nil nil)
 (provide 'refman-mode)
 ;;; refman-mode.el ends here
